@@ -30,43 +30,44 @@ output:
 > 1. Your submission should consist of a link to a Github repo with your R markdown and compiled HTML file describing your analysis. Please constrain the text of the writeup to < 2000 words and the number of figures to be less than 5. It will make it easier for the graders if you submit a repo with a gh-pages branch so the HTML page can be viewed online (and you always want to make it easy on graders :-).
 > 2. You should also apply your machine learning algorithm to the 20 test cases available in the test data above. Please submit your predictions in appropriate format to the programming assignment for automated grading. See the programming assignment for additional details. 
 
-Preliminary Work
-Reproduceability
+> Preliminary Work
+> Reproduceability
 
-An overall pseudo-random number generator seed was set at 1234 for all code. In order to reproduce the results below, the same seed should be used.
+> An overall pseudo-random number generator seed was set at 1234 for all code. In order to reproduce the results below, the same seed should be used.
 Different packages were downloaded and installed, such as caret and randomForest. These should also be installed in order to reproduce the results below (please see code below for ways and syntax to do so).
 
-How the model was built
+> How the model was built
 
-Our outcome variable is classe, a factor variable with 5 levels. For this data set, “participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in 5 different fashions:
+> Our outcome variable is classe, a factor variable with 5 levels. For this data set, “participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in 5 different fashions:
 
-- exactly according to the specification (Class A)
-- throwing the elbows to the front (Class B)
-- lifting the dumbbell only halfway (Class C)
-- lowering the dumbbell only halfway (Class D)
-- throwing the hips to the front (Class E)
-Class A corresponds to the specified execution of the exercise, while the other 4 classes correspond to common mistakes." [1]
+> - exactly according to the specification (Class A)
+> - throwing the elbows to the front (Class B)
+> - lifting the dumbbell only halfway (Class C)
+> - lowering the dumbbell only halfway (Class D)
+> - throwing the hips to the front (Class E)
+> Class A corresponds to the specified execution of the exercise, while the other 4 classes correspond to common mistakes." [1]
 Prediction evaluations will be based on maximizing the accuracy and minimizing the out-of-sample error. All other available variables after cleaning will be used for prediction.
 Two models will be tested using decision tree and random forest algorithms. The model with the highest accuracy will be chosen as our final model.
 
-Cross-validation
+> Cross-validation
 
-Cross-validation will be performed by subsampling our training data set randomly without replacement into 2 subsamples: subTraining data (75% of the original Training data set) and subTesting data (25%). Our models will be fitted on the subTraining data set, and tested on the subTesting data. Once the most accurate model is choosen, it will be tested on the original Testing data set.
+> Cross-validation will be performed by subsampling our training data set randomly without replacement into 2 subsamples: subTraining data (75% of the original Training data set) and subTesting data (25%). Our models will be fitted on the subTraining data set, and tested on the subTesting data. Once the most accurate model is choosen, it will be tested on the original Testing data set.
 
-Expected out-of-sample error
+> Expected out-of-sample error
 
-The expected out-of-sample error will correspond to the quantity: 1-accuracy in the cross-validation data. Accuracy is the proportion of correct classified observation over the total sample in the subTesting data set. Expected accuracy is the expected accuracy in the out-of-sample data set (i.e. original testing data set). Thus, the expected value of the out-of-sample error will correspond to the expected number of missclassified observations/total observations in the Test data set, which is the quantity: 1-accuracy found from the cross-validation data set.
+> The expected out-of-sample error will correspond to the quantity: 1-accuracy in the cross-validation data. Accuracy is the proportion of correct classified observation over the total sample in the subTesting data set. Expected accuracy is the expected accuracy in the out-of-sample data set (i.e. original testing data set). Thus, the expected value of the out-of-sample error will correspond to the expected number of missclassified observations/total observations in the Test data set, which is the quantity: 1-accuracy found from the cross-validation data set.
 
-Reasons for my choices
+> Reasons for my choices
 
-Our outcome variable “classe” is an unordered factor variable. Thus, we can choose our error type as 1-accuracy. We have a large sample size with N= 19622 in the Training data set. This allow us to divide our Training sample into subTraining and subTesting to allow cross-validation. Features with all missing values will be discarded as well as features that are irrelevant. All other features will be kept as relevant variables.
+> Our outcome variable “classe” is an unordered factor variable. Thus, we can choose our error type as 1-accuracy. We have a large sample size with N= 19622 in the Training data set. This allow us to divide our Training sample into subTraining and subTesting to allow cross-validation. Features with all missing values will be discarded as well as features that are irrelevant. All other features will be kept as relevant variables.
 Decision tree and random forest algorithms are known for their ability of detecting the features that are important for classification [2]. Feature selection is inherent, so it is not so necessary at the data preparation phase. Thus, there won’t be any feature selection section in this report.
 
-Code and Results
+> Code and Results
 Packages, Libraries, Seed
 
-Installing packages, loading libraries, and setting the seed for reproduceability:
+> Installing packages, loading libraries, and setting the seed for reproduceability:
 
+```{r}
 #install.packages("caret")
 #install.packages("randomForest")
 #install.packages("rpart")
@@ -81,12 +82,14 @@ library(rpart.plot) # Decision Tree plot
 
 # setting the overall seed for reproduceability
 set.seed(1234)
-Loading data sets and preliminary cleaning
+```
+> Loading data sets and preliminary cleaning
 
-First we want to load the data sets into R and make sure that missing values are coded correctly.
-Irrelevant variables will be deleted.
-Results will be hidden from the report for clarity and space considerations.
+> First we want to load the data sets into R and make sure that missing values are coded correctly.
+> Irrelevant variables will be deleted.
+> Results will be hidden from the report for clarity and space considerations.
 
+```{r}
 # After saving both data sets into my working directory
 # Some missing values are coded as string "#DIV/0!" or "" or "NA" - these will be changed to NA.
 # We notice that both data sets contain columns with all missing values - these will be deleted.  
@@ -114,13 +117,16 @@ dim(trainingset)
 dim(testingset)
 head(trainingset)
 head(testingset)
-Partitioning the training data set to allow cross-validation
+```
 
-The training data set contains 53 variables and 19622 obs.
-The testing data set contains 53 variables and 20 obs.
+> Partitioning the training data set to allow cross-validation
+
+> The training data set contains 53 variables and 19622 obs.
+> The testing data set contains 53 variables and 20 obs.
 In order to perform cross-validation, the training data set is partionned into 2 sets: subTraining (75%) and subTest (25%).
 This will be performed using random subsampling without replacement.
 
+```{r}
 subsamples <- createDataPartition(y=trainingset$classe, p=0.75, list=FALSE)
 subTraining <- trainingset[subsamples, ] 
 subTesting <- trainingset[-subsamples, ]
@@ -128,10 +134,27 @@ dim(subTraining)
 dim(subTesting)
 head(subTraining)
 head(subTesting)
-A look at the Data
+```
 
-The variable “classe” contains 5 levels: A, B, C, D and E. A plot of the outcome variable will allow us to see the frequency of each levels in the subTraining data set and compare one another.
+> A look at the Data
 
+> The variable “classe” contains 5 levels: A, B, C, D and E. A plot of the outcome variable will allow us to see the frequency of each levels in the subTraining data set and compare one another.
+
+```{r}
 plot(subTraining$classe, col="blue", main="Bar Plot of levels of the variable classe within the subTraining data set", xlab="classe levels", ylab="Frequency")
+```
 
+> From the graph above, we can see that each level frequency is within the same order of magnitude of each other. Level A is the most frequent with more than 4000 occurrences while level D is the least frequent with about 2500 occurrences.
+
+> First prediction model: Using Decision Tree
+
+```{r}
+model1 <- rpart(classe ~ ., data=subTraining, method="class")
+
+# Predicting:
+prediction1 <- predict(model1, subTesting, type = "class")
+
+# Plot of the Decision Tree
+rpart.plot(model1, main="Classification Tree", extra=102, under=TRUE, faclen=0)
+```
 
